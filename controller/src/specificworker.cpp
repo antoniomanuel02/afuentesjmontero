@@ -68,7 +68,7 @@ void SpecificWorker::compute()
 	}
 	
       }else {
-	if(ldata[6].angle > -45){
+	if(ldata[6].angle > -46){
 	  std::cout << ldata.front().dist << std::endl;
 	  differentialrobot_proxy->setSpeedBase(5, rot);
 	  usleep(rand()%(1500000-100000 + 1) + 100000);  //random wait between 1.5s and 0.1se
