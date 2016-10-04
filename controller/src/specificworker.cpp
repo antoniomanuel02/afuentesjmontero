@@ -57,29 +57,31 @@ void SpecificWorker::compute()
         RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
         std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;  //sort laser data from small to large distances using a lambda function.
 
-    if( ldata[6].dist  < threshold)//ldata.front().dist < threshold)
+    if( ldata[5].dist  < threshold)//ldata.front().dist < threshold)
     {
-      if(ldata[6].angle > 0) 
+      if(ldata[5].angle > 0) 
       {
-	if(ldata[6].angle < 45){
+	//if(ldata[6].angle < 45){
 	  std::cout << ldata.front().dist << std::endl;
 	  differentialrobot_proxy->setSpeedBase(5, -rot);
-	  usleep(rand()%(1500000-100000 + 1) + 100000);  //random wait between 1.5s and 0.1sec
-	}
+	 // usleep(rand()%(1500000-100000 + 1) + 100000);  //random wait between 1.5s and 0.1sec
+	  usleep(30000); 
+	//}
 	
       }else {
-	if(ldata[6].angle > -46){
+	//if(ldata[6].angle > -46){
 	  std::cout << ldata.front().dist << std::endl;
 	  differentialrobot_proxy->setSpeedBase(5, rot);
-	  usleep(rand()%(1500000-100000 + 1) + 100000);  //random wait between 1.5s and 0.1se
-	}
+	 // usleep(rand()%(1500000-100000 + 1) + 100000);  //random wait between 1.5s and 0.1se
+	  usleep(30000); 
+	//}
 	  
       }
       
     }
     else
     {
-        differentialrobot_proxy->setSpeedBase(200, 0); 
+        differentialrobot_proxy->setSpeedBase(800, 0); 
     }
     }
     catch(const Ice::Exception &ex)
