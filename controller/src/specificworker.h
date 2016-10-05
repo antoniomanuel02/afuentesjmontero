@@ -41,13 +41,36 @@ public:
 	SpecificWorker(MapPrx& mprx);	
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
-
+	void setPick(const Pick &myPick);
 
 public slots:
 	void compute(); 	
 
 private:
+	struct Tarjet
+	{
+	  bool active = false;
+	  QMutex m;
+	  QVec pose;
+	  void setActive(bool v)
+	  {
+	    QMutexLocker ml (&m);
+	    active = v;
+	  }
+	  void copy (float x, float z)
+	  {
+	    QMutexLocker ml (&m);
+	    pose[0]=x;
+	    pose[1]=z;
+	  }
+	  QVec getPose()
+	  {
+	    QMutexLocker ml (&m);
+	    return pose;
+	  }
+	};
 	
+	Tarjet tarjet;
 };
 
 #endif
