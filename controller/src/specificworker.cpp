@@ -109,6 +109,40 @@ void SpecificWorker::compute()
       aux_modulo = (diferencia.x() * diferencia.x()) + (diferencia.z() * diferencia.z());
       aux_modulo = sqrt(aux_modulo);
       
+      float matrizSenoidal[2][2];
+      float matrizWorld[2][1];
+      float matrizTrans[2][1];
+      float matrizResult[2][1];
+      
+      matrizSenoidal[0][0] = cos (TBstate.alpha);
+      matrizSenoidal[0][1] = -sin (TBstate.alpha);
+      matrizSenoidal[1][0] = sin (TBstate.alpha);
+      matrizSenoidal[1][1] = cos (TBstate.alpha);
+      
+      matrizWorld[0][0] = TBstate.x;
+      matrizWorld[1][0] = TBstate.z;
+      
+      matrizTrans[0][0] = tarjet.pose.x();
+      matrizTrans[1][0] = tarjet.pose.y();
+      
+      matrizResult[0][0] = ((matrizSenoidal[0][0]*matrizWorld[0][0]) + (matrizSenoidal[0][1]*matrizWorld[1][0])) + (matrizTrans[0][0]);
+      matrizResult[1][0] = ((matrizSenoidal[1][0]*matrizWorld[0][0]) + (matrizSenoidal[1][1]*matrizWorld[1][0])) + (matrizTrans[1][0]);
+      
+      float angulo = atan2(matrizResult[0][0],matrizResult[1][0]);
+      
+      differentialrobot_proxy->setSpeedBase(aux_modulo, angulo * 0.5);
+      std::cout << "fabs: " << fabs(angulo) << std::endl;
+      
+      /*
+      if (fabs(angulo) < 0.2) //valor absuluto de angulo;
+      {
+	differentialrobot_proxy->setSpeedBase(0, 0);
+      }
+      
+      */
+      
+      
+      
       //ahora necesitamos el angulo del vector diferencia para que el robot apunte 
       //a la zona donde debe ir
       

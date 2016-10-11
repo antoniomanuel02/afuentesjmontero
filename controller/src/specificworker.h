@@ -50,7 +50,7 @@ private:
 	struct Tarjet
 	{
 	  bool active = false;
-	  QMutex m;
+	  /* mutable */ QMutex m;
 	  QVec pose;
 	  void setActive(bool v)
 	  {
