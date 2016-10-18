@@ -52,17 +52,20 @@ private:
 	  bool active = false;
 	  /* mutable */ QMutex m;
 	  QVec pose;
+	  
 	  void setActive(bool v)
 	  {
 	    QMutexLocker ml (&m);
 	    active = v;
 	  }
+	  
 	  void copy (float x, float z)
 	  {
 	    QMutexLocker ml (&m);
 	    pose[0]=x;
 	    pose[1]=z;
 	  }
+	  
 	  QVec getPose()
 	  {
 	    QMutexLocker ml (&m);
