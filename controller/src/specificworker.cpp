@@ -125,24 +125,29 @@ void SpecificWorker::compute()
       matrizWorld[0][0] = tarjet.pose[0];//xTBstate.x;
       matrizWorld[1][0] = tarjet.pose[1];//zTBstate.z;
       
-      matrizTrans[0][0] = TBstate.x;//tarjet.pose[0];//x
-      matrizTrans[1][0] = TBstate.z;//tarjet.pose[1];//z
+      matrizTrans[0][0] = diferencia.x();//TBstate.x;//tarjet.pose[0];//x
+      matrizTrans[1][0] = diferencia.z();//TBstate.z;//tarjet.pose[1];//z
       
       
-     //matrizResult[0][0] = ((matrizSenoidal[0][0]*matrizWorld[0][0]) + (matrizSenoidal[0][1]*matrizWorld[1][0])) + (matrizTrans[0][0]);
-      //matrizResult[1][0] = ((matrizSenoidal[1][0]*matrizWorld[0][0]) + (matrizSenoidal[1][1]*matrizWorld[1][0])) + (matrizTrans[1][0]);
+      matrizResult[0][0] = ((matrizSenoidal[0][0]*matrizWorld[0][0]) + (matrizSenoidal[0][1]*matrizWorld[1][0])) + (matrizTrans[0][0]);
+      matrizResult[1][0] = ((matrizSenoidal[1][0]*matrizWorld[0][0]) + (matrizSenoidal[1][1]*matrizWorld[1][0])) + (matrizTrans[1][0]);
       
-      matrizResult[0][0] = ((matrizSenoidal[0][0]*diferencia.x()) + (matrizSenoidal[0][1]*diferencia.z())) + (matrizTrans[0][0]);
-      matrizResult[1][0] = ((matrizSenoidal[1][0]*diferencia.x()) + (matrizSenoidal[1][1]*diferencia.z())) + (matrizTrans[1][0]);
+      //matrizResult[0][0] = ((matrizSenoidal[0][0]*diferencia.x()) + (matrizSenoidal[0][1]*diferencia.z())) + (matrizTrans[0][0]);
+      //matrizResult[1][0] = ((matrizSenoidal[1][0]*diferencia.x()) + (matrizSenoidal[1][1]*diferencia.z())) + (matrizTrans[1][0]);
       
       float angulo = atan2(matrizResult[0][0],matrizResult[1][0]);
-      
-      differentialrobot_proxy->setSpeedBase(aux_modulo, angulo * 0.5);
       std::cout << "angulo: " << angulo << std::endl;
+     
+     // differentialrobot_proxy->setSpeedBase(0, 0.5);
       
       
       
-      if (fabs(angulo) < 0.01) //valor absuluto de angulo;
+      if (fabs(angulo) >= 0.05) //valor absuluto de angulo;
+      {
+	differentialrobot_proxy->setSpeedBase(0, 0.5);
+      }
+      
+      if (fabs(angulo) < 0.05) //valor absuluto de angulo;
       {
 	differentialrobot_proxy->setSpeedBase(0, 0);
       }
