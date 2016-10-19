@@ -57,7 +57,7 @@ void SpecificWorker::compute()
 {
     const float threshold = 400; //millimeters
     float rot = 0.6;  //rads per second
-    float aux_modulo = 0;
+    
     try
     {
         RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
@@ -66,6 +66,7 @@ void SpecificWorker::compute()
        // std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;  //sort laser data from small to large distances using a lambda function.
 	TBaseState TBstate;
 	QVec diferencia;
+	float modulo_diferencia;
 	
         
     /* Para que no se coma las cajas   
@@ -105,12 +106,14 @@ void SpecificWorker::compute()
       differentialrobot_proxy->getBaseState(TBstate);
       
       diferencia = tarjet.getPose();
+      std::cout << "diferencia x: " << diferencia.x() << std::endl;
+      std::cout << "diferencia z: " << diferencia.z() << std::endl;
       diferencia[0] = diferencia.x() - TBstate.x; 
       diferencia[1] = diferencia.z() - TBstate.z;
       
       //sacamos el modulo del vector
-      aux_modulo = (diferencia.x() * diferencia.x()) + (diferencia.z() * diferencia.z());
-      aux_modulo = sqrt(aux_modulo);
+      modulo_diferencia = (diferencia.x() * diferencia.x()) + (diferencia.z() * diferencia.z());
+      modulo_diferencia = sqrt(modulo_diferencia);
       
       float matrizSenoidal[2][2];
       float matrizWorld[2][1];
@@ -122,34 +125,46 @@ void SpecificWorker::compute()
       matrizSenoidal[1][0] = sin (TBstate.alpha);
       matrizSenoidal[1][1] = cos (TBstate.alpha);
       
-      matrizWorld[0][0] = tarjet.pose[0];//xTBstate.x;
-      matrizWorld[1][0] = tarjet.pose[1];//zTBstate.z;
+      matrizWorld[0][0] = tarjet.pose[0];
+      matrizWorld[1][0] = tarjet.pose[1];
       
-      matrizTrans[0][0] = diferencia.x();//TBstate.x;//tarjet.pose[0];//x
-      matrizTrans[1][0] = diferencia.z();//TBstate.z;//tarjet.pose[1];//z
+      matrizTrans[0][0] = diferencia.x();
+      matrizTrans[1][0] = diferencia.z();
       
       
       matrizResult[0][0] = ((matrizSenoidal[0][0]*matrizWorld[0][0]) + (matrizSenoidal[0][1]*matrizWorld[1][0])) + (matrizTrans[0][0]);
       matrizResult[1][0] = ((matrizSenoidal[1][0]*matrizWorld[0][0]) + (matrizSenoidal[1][1]*matrizWorld[1][0])) + (matrizTrans[1][0]);
       
-      //matrizResult[0][0] = ((matrizSenoidal[0][0]*diferencia.x()) + (matrizSenoidal[0][1]*diferencia.z())) + (matrizTrans[0][0]);
-      //matrizResult[1][0] = ((matrizSenoidal[1][0]*diferencia.x()) + (matrizSenoidal[1][1]*diferencia.z())) + (matrizTrans[1][0]);
       
       float angulo = atan2(matrizResult[0][0],matrizResult[1][0]);
-      std::cout << "angulo: " << angulo << std::endl;
+     // std::cout << "angulo: " << angulo << std::endl;
      
      // differentialrobot_proxy->setSpeedBase(0, 0.5);
       
       
       
       if (fabs(angulo) >= 0.05) //valor absuluto de angulo;
-      {
-	differentialrobot_proxy->setSpeedBase(0, 0.5);
+      {	
+	  if(angulo>0)
+	  {
+	    differentialrobot_proxy->setSpeedBase(0, 0.5);
+	  }
+	  
+	  if(angulo<0)
+	  {
+	    differentialrobot_proxy->setSpeedBase(0, -0.5);
+	  }
       }
       
-      if (fabs(angulo) < 0.05) //valor absuluto de angulo;
+      else if (fabs(angulo) < 0.05) //valor absuluto de angulo;
       {
-	differentialrobot_proxy->setSpeedBase(0, 0);
+	//std::cout << "Tira para alante con modulo: " << modulo_diferencia << std::endl;
+	if (fabs(modulo_diferencia) > 0.00001)
+	{
+	  differentialrobot_proxy->setSpeedBase(300, 0);
+	}
+	else
+	  differentialrobot_proxy->setSpeedBase(0, 0);
       }
       
       
