@@ -45,7 +45,7 @@ void SpecificWorker::setPick(const Pick &myPick) {//se ejecuta en el hilo de mid
 }
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-
+	inermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
 	
 	timer.start(Period);
 	
@@ -53,19 +53,40 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 	return true;
 }
 
-void SpecificWorker::compute()
+void SpecificWorker::gotoTarjet()
 {
-    const float threshold = 400; //millimeters
-    float rot = 0.6;  //rads per second
+  qDebug() << "gotoTarjet";
+  
+  QVec rt = inermodel->transform("base", tarjet.getPose(), "world");
+  
+  float ang = atan2(rt.x(),rt.z());
+  float dist = rt.norm2();
+  
+  if( dist < 100)
+  {
+    differentialrobot_proxy->stopBase();
+    qDebug()<< "Ha llegado a su destino";
     
-    try
-    {
-        RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+  }
+  else
+  {
+    float adv = dist;
+    float rot = ang;
+    if( fabs(ang) > 0.05 )
+
+      adv = 0;
+
+    differentialrobot_proxy->setSpeedBase(adv, rot);  
+  }
+  
+  
+  /*
+   RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
 	std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;  //sort laser data from small to large distances using a lambda function.
         //RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
        // std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;  //sort laser data from small to large distances using a lambda function.
 	TBaseState TBstate;
-	QVec diferencia;
+	QVec diferencia = QVec::zeros(2);
 	float modulo_diferencia;
 	
         
@@ -96,20 +117,31 @@ void SpecificWorker::compute()
     {
         differentialrobot_proxy->setSpeedBase(600, 0); 
     }
-    */
+    /////////////////////////////////////////////////////
     
     if (tarjet.active == true)
     {
      
       //En tarjet.QVec tenemos las coordenadas del punto a donde tiene que ir el robot
       //En TBstate tenemos la posici´on del robot
+      // im -> trans("base",qvec,"world")
+      
       differentialrobot_proxy->getBaseState(TBstate);
       
-      diferencia = tarjet.getPose();
-      std::cout << "diferencia x: " << diferencia.x() << std::endl;
-      std::cout << "diferencia z: " << diferencia.z() << std::endl;
-      diferencia[0] = diferencia.x() - TBstate.x; 
-      diferencia[1] = diferencia.z() - TBstate.z;
+      QVec target = tarjet.getPose();
+  
+      diferencia[0] = target[0] - TBstate.x; 
+      diferencia[1] = target[1] - TBstate.z;
+      
+      target.print("target");
+      qDebug() << TBstate.x << TBstate.z;
+      diferencia.print("dif");
+      
+      
+      
+      
+      std::cout << "diferencia x: " << diferencia[0] << std::endl;
+      std::cout << "diferencia z: " << diferencia[1] << std::endl;
       
       //sacamos el modulo del vector
       modulo_diferencia = (diferencia.x() * diferencia.x()) + (diferencia.z() * diferencia.z());
@@ -125,19 +157,19 @@ void SpecificWorker::compute()
       matrizSenoidal[1][0] = sin (TBstate.alpha);
       matrizSenoidal[1][1] = cos (TBstate.alpha);
       
-      matrizWorld[0][0] = tarjet.pose[0];
-      matrizWorld[1][0] = tarjet.pose[1];
+      matrizWorld[0][0] = target[0];
+      matrizWorld[1][0] = target[1];
       
-      matrizTrans[0][0] = diferencia.x();
-      matrizTrans[1][0] = diferencia.z();
+      matrizTrans[0][0] = diferencia[0];
+      matrizTrans[1][0] = diferencia[1];
       
       
       matrizResult[0][0] = ((matrizSenoidal[0][0]*matrizWorld[0][0]) + (matrizSenoidal[0][1]*matrizWorld[1][0])) + (matrizTrans[0][0]);
       matrizResult[1][0] = ((matrizSenoidal[1][0]*matrizWorld[0][0]) + (matrizSenoidal[1][1]*matrizWorld[1][0])) + (matrizTrans[1][0]);
       
-      
+    
       float angulo = atan2(matrizResult[0][0],matrizResult[1][0]);
-     // std::cout << "angulo: " << angulo << std::endl;
+      std::cout << "angulo: " << angulo << std::endl;
      
      // differentialrobot_proxy->setSpeedBase(0, 0.5);
       
@@ -159,7 +191,7 @@ void SpecificWorker::compute()
       else if (fabs(angulo) < 0.05) //valor absuluto de angulo;
       {
 	//std::cout << "Tira para alante con modulo: " << modulo_diferencia << std::endl;
-	if (fabs(modulo_diferencia) > 0.00001)
+	if (fabs(modulo_diferencia) > 100)
 	{
 	  differentialrobot_proxy->setSpeedBase(300, 0);
 	}
@@ -178,20 +210,29 @@ void SpecificWorker::compute()
       //necesito ang y mod
       
     }
-    
-    
-    
-    
+    */
+}
+
+void SpecificWorker::compute()
+{
+    try
+    {
+	TBaseState TBstate;
+	differentialrobot_proxy->getBaseState(TBstate);
+	QVec vector3 = QVec::zeros(3);
+	RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+	inermodel->updateTransformValues("base", TBstate.x,0,TBstate.z,0,TBstate.alpha,0);
+	
+	if(tarjet.active == true)
+	{
+	    gotoTarjet();
+	}
+
     }
     catch(const Ice::Exception &ex)
     {
         std::cout << ex << std::endl;
     }
+    
 }
-
-
-
-
-
-
 

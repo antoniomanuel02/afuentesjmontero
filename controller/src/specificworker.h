@@ -42,16 +42,18 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	void setPick(const Pick &myPick);
+	void gotoTarjet();
 
 public slots:
-	void compute(); 	
+	
+  void compute(); 	
 
 private:
 	struct Tarjet
 	{
 	  bool active = false;
 	  /* mutable */ QMutex m;
-	  QVec pose;
+	  QVec pose = QVec::zeros(3);
 	  
 	  void setActive(bool v)
 	  {
@@ -63,7 +65,8 @@ private:
 	  {
 	    QMutexLocker ml (&m);
 	    pose[0]=x;
-	    pose[1]=z;
+	    pose[1]=0;
+	    pose[2]=z;
 	  }
 	  
 	  QVec getPose()
@@ -74,6 +77,7 @@ private:
 	};
 	
 	Tarjet tarjet;
+	InnerModel *inermodel;
 };
 
 #endif
