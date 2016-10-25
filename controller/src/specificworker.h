@@ -43,6 +43,10 @@ public:
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	void setPick(const Pick &myPick);
 	void gotoTarjet();
+	bool obstacle();
+	void bug();
+	bool targetAtSight();
+	
 
 public slots:
 	
@@ -78,6 +82,12 @@ private:
 	
 	Tarjet tarjet;
 	InnerModel *inermodel;
+
+
+	enum class State  { INIT, GOTO, BUG, END} ; 
+	State state;// = Estado::INIT;
+	bool obst;
+
 };
 
 #endif

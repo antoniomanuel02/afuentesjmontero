@@ -45,16 +45,70 @@ void SpecificWorker::setPick(const Pick &myPick) {//se ejecuta en el hilo de mid
 }
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-	inermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
 	
+
+	//inermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
+	inermodel = new InnerModel("/home/salabeta/robocomp/files/innermodel/simpleworld.xml");
 	timer.start(Period);
 	
 
 	return true;
 }
 
+void SpecificWorker::compute()
+{
+
+    try
+    {
+	TBaseState TBstate;
+	differentialrobot_proxy->getBaseState(TBstate);
+	QVec vector3 = QVec::zeros(3);
+	RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+	inermodel->updateTransformValues("base", TBstate.x,0,TBstate.z,0,TBstate.alpha,0);
+		
+	switch(state) {
+	  
+	  case State::INIT:
+	    
+	    if(tarjet.active == true)
+	        state = State::GOTO;
+	    break;
+	  case State::GOTO:
+	    
+	    gotoTarjet();
+	    break;
+	  case State::BUG:
+	    
+	    bug();
+	    break;   
+	  case State::END:
+	    
+	    break;
+	}
+
+    }
+    catch(const Ice::Exception &ex)
+    {
+        std::cout << ex << std::endl;
+    }
+    
+}
+
+void SpecificWorker::bug() {
+  
+}
+bool SpecificWorker::obstacle() {
+  
+}
+bool SpecificWorker::targetAtSight()
+
+{
+
+}
+
 void SpecificWorker::gotoTarjet()
 {
+
   qDebug() << "gotoTarjet";
   
   QVec rt = inermodel->transform("base", tarjet.getPose(), "world");
@@ -211,28 +265,5 @@ void SpecificWorker::gotoTarjet()
       
     }
     */
+
 }
-
-void SpecificWorker::compute()
-{
-    try
-    {
-	TBaseState TBstate;
-	differentialrobot_proxy->getBaseState(TBstate);
-	QVec vector3 = QVec::zeros(3);
-	RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
-	inermodel->updateTransformValues("base", TBstate.x,0,TBstate.z,0,TBstate.alpha,0);
-	
-	if(tarjet.active == true)
-	{
-	    gotoTarjet();
-	}
-
-    }
-    catch(const Ice::Exception &ex)
-    {
-        std::cout << ex << std::endl;
-    }
-    
-}
-
