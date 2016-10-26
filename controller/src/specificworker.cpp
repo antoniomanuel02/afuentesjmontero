@@ -97,8 +97,12 @@ void SpecificWorker::compute()
 void SpecificWorker::bug() {
   
   float vr;
-  float d = ldata[10].dist;
   RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+  float d = ldata[10].dist;
+  const float m = 1.f/ 1000.f;
+  const float n = -0.5;
+  float k;
+  float rot = 0.5;
   TBaseState TBstate;
   
   if(cruzarLinea()) {
@@ -106,14 +110,16 @@ void SpecificWorker::bug() {
     state = State::GOTO;
     return;
   }
-    
+  
+   k = m* d +n;  
   if(d > 160) 
-    vr = d.k;
+   
+    vr = d*k;
   
   if(d < 130) 
-    vr = -d.k;
-  
-  float vadv;// = exp((fabs()*)*250);
+    vr = -d*k;
+  float alfa = log(0.1)/log(0.2);
+  float vadv = exp((fabs(vr)*alfa)*250);
   differentialrobot_proxy->setSpeedBase(vadv, rot);
   
   
@@ -123,11 +129,33 @@ bool SpecificWorker::cruzarLinea() {
 }
 
 bool SpecificWorker::obstacle() {
+  float threshold = 100;
+  RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+  if( ldata[5].dist  < threshold)//ldata.front().dist < threshold)
+    {
+      return true;
+    }
+    else 
+    {
+      return false;
+    }
+      
   
 }
 bool SpecificWorker::targetAtSight()
 
 {
+  
+  QPolygonf polygon;
+  RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+  for (auto l;; ldata)  
+  {
+    QVec lr = inermodel->laserTo("world", "laser", l.dist, l.angle);
+    polygon << QPointF(lr.x(), lr.z());
+  }
+  
+  QVec t = tarjet.getPose();
+  return  polygon.contains(QPointF(t.x(), t.z()));
 
 }
 
@@ -146,6 +174,9 @@ void SpecificWorker::gotoTarjet()
     differentialrobot_proxy->stopBase();
     qDebug()<< "Ha llegado a su destino";
     
+  }else if(obstacle())
+  {
+    state = State::BUG;
   }
   else
   {

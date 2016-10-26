@@ -33,6 +33,7 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
+#include <math.h>
 
 class SpecificWorker : public GenericWorker
 {
@@ -52,6 +53,23 @@ public:
 public slots:
 	
   void compute(); 	
+	QPolygonf QPointF();
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
+	float k;
 
 private:
 	struct Tarjet
@@ -86,7 +104,7 @@ private:
 
 
 	enum class State  { INIT, GOTO, BUG, END} ; 
-	State state;// = Estado::INIT;
+	State state = State::INIT;
 	bool obst;
 
 };
