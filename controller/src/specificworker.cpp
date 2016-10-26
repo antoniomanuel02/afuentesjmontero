@@ -96,7 +96,32 @@ void SpecificWorker::compute()
 
 void SpecificWorker::bug() {
   
+  float vr;
+  float d = ldata[10].dist;
+  RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+  TBaseState TBstate;
+  
+  if(cruzarLinea()) {
+    
+    state = State::GOTO;
+    return;
+  }
+    
+  if(d > 160) 
+    vr = d.k;
+  
+  if(d < 130) 
+    vr = -d.k;
+  
+  float vadv;// = exp((fabs()*)*250);
+  differentialrobot_proxy->setSpeedBase(vadv, rot);
+  
+  
 }
+bool SpecificWorker::cruzarLinea() {
+  return true;
+}
+
 bool SpecificWorker::obstacle() {
   
 }

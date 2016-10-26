@@ -46,6 +46,7 @@ public:
 	bool obstacle();
 	void bug();
 	bool targetAtSight();
+	bool cruzarLinea();
 	
 
 public slots:
