@@ -47,8 +47,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 	
 
-	//inermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
-	inermodel = new InnerModel("/home/salabeta/robocomp/files/innermodel/simpleworld.xml");
+	inermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
+	//inermodel = new InnerModel("/home/salabeta/robocomp/files/innermodel/simpleworld.xml");
 	timer.start(Period);
 	
 
@@ -69,19 +69,23 @@ void SpecificWorker::compute()
 	switch(state) {
 	  
 	  case State::INIT:
-	    
+	    qDebug()<< "Case init";
 	    if(tarjet.active == true)
+		qDebug()<< "Estado inicializado, cambia a GOTO";
 	        state = State::GOTO;
 	    break;
 	  case State::GOTO:
+	    qDebug()<< "Case Goto";
 	    
 	    gotoTarjet();
 	    break;
 	  case State::BUG:
+	    qDebug()<< "Case Bug";
 	    
 	    bug();
 	    break;   
 	  case State::END:
+	    qDebug()<< "Case End";
 	    
 	    break;
 	}
@@ -96,41 +100,52 @@ void SpecificWorker::compute()
 
 void SpecificWorker::bug() {
   
-  float vr;
+  float vr=0;
   RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+  std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
   float d = ldata[10].dist;
   const float m = 1.f/ 1000.f;
   const float n = -0.5;
   float k;
   float rot = 0.5;
   TBaseState TBstate;
+  qDebug()<< "d: " << d;
+  qDebug()<< "m: " << m;
+  qDebug()<< "n" << n;
+  
   
   if(cruzarLinea()) {
-    
+    qDebug()<< "Cambia a GOTO";
     state = State::GOTO;
     return;
   }
   
-   k = m* d +n;  
-  if(d > 160) 
-   
-    vr = d*k;
+   k = (m * d) + n;
+   qDebug()<< "K: " << k;
+  if(d > 160) {
+    vr = d * k;
+  }
   
-  if(d < 130) 
-    vr = -d*k;
+  if(d < 130) {
+    vr = -d * k;
+  }
   float alfa = log(0.1)/log(0.2);
-  float vadv = exp((fabs(vr)*alfa)*250);
+  double vadv = exp((fabs(vr)*alfa)*250);
+  qDebug()<< vadv;
+  qDebug()<< vr;
+  qDebug()<< alfa;
   differentialrobot_proxy->setSpeedBase(vadv, rot);
   
-  
 }
+
 bool SpecificWorker::cruzarLinea() {
-  return true;
+  return false;
 }
 
 bool SpecificWorker::obstacle() {
-  float threshold = 100;
+  float threshold = 450;
   RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+  std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
   if( ldata[5].dist  < threshold)//ldata.front().dist < threshold)
     {
       return true;
@@ -146,12 +161,13 @@ bool SpecificWorker::targetAtSight()
 
 {
   
-  QPolygonf polygon;
+  QPolygonF polygon;
   RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
-  for (auto l;; ldata)  
+  for (auto i : ldata)  
   {
-    QVec lr = inermodel->laserTo("world", "laser", l.dist, l.angle);
+    QVec lr = inermodel->laserTo("world", "laser", i.dist, i.angle);
     polygon << QPointF(lr.x(), lr.z());
+    
   }
   
   QVec t = tarjet.getPose();
@@ -162,7 +178,7 @@ bool SpecificWorker::targetAtSight()
 void SpecificWorker::gotoTarjet()
 {
 
-  qDebug() << "gotoTarjet";
+  //qDebug() << "Entra en gotoTarjet";
   
   QVec rt = inermodel->transform("base", tarjet.getPose(), "world");
   
@@ -172,10 +188,11 @@ void SpecificWorker::gotoTarjet()
   if( dist < 100)
   {
     differentialrobot_proxy->stopBase();
-    qDebug()<< "Ha llegado a su destino";
+    //qDebug()<< "Ha llegado a su destino";
     
   }else if(obstacle())
   {
+    qDebug()<< "Cambia a BUG";
     state = State::BUG;
   }
   else

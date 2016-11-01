@@ -53,23 +53,9 @@ public:
 public slots:
 	
   void compute(); 	
-	QPolygonf QPointF();
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
-	float k;
+	//QPolygon QPointF();
+	//float k;
+
 
 private:
 	struct Tarjet
