@@ -79,13 +79,15 @@ void SpecificWorker::compute()
 	    
 	    gotoTarjet();
 	    break;
+	  case State::INIT_BUG:
+	    qDebug()<< "Case Init_Bug";
+	    init_bug();
+	    
+	    
+	    break;   
 	  case State::BUG:
 	    qDebug()<< "Case Bug";
-	    
 	    bug();
-	    break;   
-	  case State::END:
-	    qDebug()<< "Case End";
 	    
 	    break;
 	}
@@ -98,43 +100,95 @@ void SpecificWorker::compute()
     
 }
 
-void SpecificWorker::bug() {
+void SpecificWorker::init_bug()//solo gira para un lado,dar algo de avance en el giro 
+{
+  float rot = 0.5;
+  RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+  std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
+  if(!obstacle())
+  {
+    qDebug()<< "Cambia a BUG";
+    state = State::BUG; 
+  }
+  differentialrobot_proxy->setSpeedBase(40, -rot);
   
-  float vr=0;
+      
+}
+
+void SpecificWorker::bug() //no dar avance en el giro dar en el else,volver al bug init comprobando con el obstacle
+{
+  
+  
   RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
   std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
   float d = ldata[10].dist;
   const float m = 1.f/ 1000.f;
   const float n = -0.5;
   float k;
-  float rot = 0.5;
+  float rot = 1;
+  float vadv;
+  float vr = 0;
   TBaseState TBstate;
   qDebug()<< "d: " << d;
   qDebug()<< "m: " << m;
   qDebug()<< "n" << n;
   
-  
+  /*
   if(cruzarLinea()) {
     qDebug()<< "Cambia a GOTO";
     state = State::GOTO;
     return;
   }
   
-   k = (m * d) + n;
-   qDebug()<< "K: " << k;
-  if(d > 160) {
-    vr = d * k;
+   
+  // qDebug()<< "K: " << k;
+  if(d > 160)
+  {
+    vr = rot;//k;//d*k
+    //vr = (m * d) + n;
   }
   
-  if(d < 130) {
-    vr = -d * k;
+  if(d < 130)
+  {
+    vr = -rot;//k;//-d*k
+    //vr = (m * d) + n;
   }
   float alfa = log(0.1)/log(0.2);
-  double vadv = exp((fabs(vr)*alfa)*250);
-  qDebug()<< vadv;
-  qDebug()<< vr;
-  qDebug()<< alfa;
-  differentialrobot_proxy->setSpeedBase(vadv, rot);
+  vadv = (exp(-fabs(vr)*alfa))*100;
+  qDebug()<< "Velocidad de avance" << vadv;
+  qDebug()<< "Velocidad de rotacion" << vr;
+  qDebug()<< "alfa" << alfa;
+
+  differentialrobot_proxy->setSpeedBase(vadv, vr);
+  */
+  if(cruzarLinea()) {
+    qDebug()<< "Cambia a GOTO";
+    state = State::GOTO;
+    return;
+  }
+  
+  if(obstacle())
+  {
+    qDebug()<< "Cambia a INIT_BUG";
+    state = State::INIT_BUG; 
+    return;
+  } 
+  
+  // qDebug()<< "K: " << k;
+  if(d > 500)
+  {
+    differentialrobot_proxy->setSpeedBase(0, rot);
+  }
+  
+  else if(d < 450)
+  {
+    differentialrobot_proxy->setSpeedBase(0, -rot);
+  }
+  else{
+  
+
+  differentialrobot_proxy->setSpeedBase(200, 0);
+  }
   
 }
 
@@ -192,8 +246,8 @@ void SpecificWorker::gotoTarjet()
     
   }else if(obstacle())
   {
-    qDebug()<< "Cambia a BUG";
-    state = State::BUG;
+    qDebug()<< "Cambia a INIT_BUG";
+    state = State::INIT_BUG;
   }
   else
   {

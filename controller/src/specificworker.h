@@ -23,11 +23,6 @@
 */
 
 
-
-
-
-
-
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
@@ -46,6 +41,7 @@ public:
 	void gotoTarjet();
 	bool obstacle();
 	void bug();
+	void init_bug();
 	bool targetAtSight();
 	bool cruzarLinea();
 	
@@ -89,9 +85,9 @@ private:
 	InnerModel *inermodel;
 
 
-	enum class State  { INIT, GOTO, BUG, END} ; 
+	enum class State  { INIT, GOTO, INIT_BUG, BUG} ; 
 	State state = State::INIT;
-	bool obst;
+	//bool obst;
 
 };
 
