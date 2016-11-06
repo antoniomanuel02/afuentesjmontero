@@ -193,6 +193,10 @@ void SpecificWorker::bug() //no dar avance en el giro dar en el else,volver al b
 }
 
 bool SpecificWorker::cruzarLinea() {
+  if (targetAtSight())
+  {
+    return true;
+  }
   return false;
 }
 
