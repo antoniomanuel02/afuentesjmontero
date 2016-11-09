@@ -48,6 +48,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 void SpecificWorker::compute()
 {
+  controller= new controller ( "/home/salabeta/robocomp/files/innermodel/simpleworld.xml" );
 // 	try
 // 	{
 // 		camera_proxy->getYImage(0,img, cState, bState);

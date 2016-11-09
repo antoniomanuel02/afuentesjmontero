@@ -80,8 +80,11 @@
 #include "specificmonitor.h"
 #include "commonbehaviorI.h"
 
+#include <apriltagsI.h>
 
 #include <GotoPoint.h>
+#include <AprilTags.h>
+#include <DifferentialRobot.h>
 
 
 // User includes here
@@ -91,6 +94,8 @@ using namespace std;
 using namespace RoboCompCommonBehavior;
 
 using namespace RoboCompGotoPoint;
+using namespace RoboCompAprilTags;
+using namespace RoboCompDifferentialRobot;
 
 
 
@@ -134,10 +139,28 @@ int ::supervisor::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
+	DifferentialRobotPrx differentialrobot_proxy;
 	GotoPointPrx gotopoint_proxy;
 
 	string proxy, tmp;
 	initialize();
+
+
+	try
+	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "DifferentialRobotProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DifferentialRobotProxy\n";
+		}
+		differentialrobot_proxy = DifferentialRobotPrx::uncheckedCast( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("DifferentialRobotProxy initialized Ok!");
+	mprx["DifferentialRobotProxy"] = (::IceProxy::Ice::Object*)(&differentialrobot_proxy);//Remote server proxy creation example
 
 
 	try
@@ -156,6 +179,7 @@ int ::supervisor::run(int argc, char* argv[])
 	rInfo("GotoPointProxy initialized Ok!");
 	mprx["GotoPointProxy"] = (::IceProxy::Ice::Object*)(&gotopoint_proxy);//Remote server proxy creation example
 
+	IceStorm::TopicManagerPrx topicManager = IceStorm::TopicManagerPrx::checkedCast(communicator()->propertyToProxy("TopicManager.Proxy"));
 
 
 	SpecificWorker *worker = new SpecificWorker(mprx);
@@ -190,6 +214,34 @@ int ::supervisor::run(int argc, char* argv[])
 
 
 
+
+		// Server adapter creation and publication
+		if (not GenericMonitor::configGetString(communicator(), prefix, "AprilTagsTopic.Endpoints", tmp, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy AprilTagsProxy";
+		}
+		Ice::ObjectAdapterPtr AprilTags_adapter = communicator()->createObjectAdapterWithEndpoints("apriltags", tmp);
+		AprilTagsPtr apriltagsI_ = new AprilTagsI(worker);
+		Ice::ObjectPrx apriltags = AprilTags_adapter->addWithUUID(apriltagsI_)->ice_oneway();
+		IceStorm::TopicPrx apriltags_topic;
+		if(!apriltags_topic){
+		try {
+			apriltags_topic = topicManager->create("AprilTags");
+		}
+		catch (const IceStorm::TopicExists&) {
+		//Another client created the topic
+		try{
+			apriltags_topic = topicManager->retrieve("AprilTags");
+		}
+		catch(const IceStorm::NoSuchTopic&)
+		{
+			//Error. Topic does not exist
+			}
+		}
+		IceStorm::QoS qos;
+		apriltags_topic->subscribeAndGetPublisher(qos, apriltags);
+		}
+		AprilTags_adapter->activate();
 
 		// Server adapter creation and publication
 		cout << SERVER_FULL_NAME " started" << endl;
