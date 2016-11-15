@@ -23,69 +23,71 @@
 */
 
 
-
-
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include <simplifypath/simplifyPath.h>
-
+#include <math.h>
 
 class SpecificWorker : public GenericWorker
 {
- Q_OBJECT
+Q_OBJECT
+public:
+	SpecificWorker(MapPrx& mprx);	
+	~SpecificWorker();
+	bool setParams(RoboCompCommonBehavior::ParameterList params);
+	void setPick(const Pick &myPick);
+	void gotoTarjet(RoboCompLaser::TLaserData &laser);
+	bool obstacle(RoboCompLaser::TLaserData laser);
+	void bug(RoboCompLaser::TLaserData &laser, TBaseState &bState);
+	void init_bug(RoboCompLaser::TLaserData &laser, TBaseState &bState);
+	bool targetAtSight(RoboCompLaser::TLaserData laser);
+	float obstacleLeft(const TLaserData& tlaser);
+	
 
-	public:
-		SpecificWorker(MapPrx& mprx);	
-		~SpecificWorker();
-		bool setParams(RoboCompCommonBehavior::ParameterList params);
-		void setPick(const Pick &mypick);
+public slots:
+	
+  void compute(); 	
+	//QPolygon QPointF();
+	//float k;
 
-	public slots:
-		void compute(); 	
 
-	private:    
-		enum class State {INIT,GOTO,BUG,END, BUGINIT};
-		struct Target
-		{
-			mutable QMutex m;
-			QVec pose = QVec::zeros(3);
-			float angl;
-			bool active = false;
-			void setActive(bool newActive)
-			{
-				QMutexLocker lm(&m);
-				active = newActive;
-			}
-			void copy(float x, float z)
-			{
-				QMutexLocker lm(&m);
-				pose.setItem(0,x);
-				pose.setItem(1,0);
-				pose.setItem(2,z);
-			}
-			QVec getPose()
-			{
-				QMutexLocker lm(&m);
-				return pose;
-			}
-		};
-		InnerModel* innerModel;
-		State state = State::INIT;
-		Target pick;
-		QLine2D linea;
-		float distanciaAnterior;
-		void dodge(int threshold,RoboCompLaser::TLaserData ldata);
-		void move(const TLaserData &tLaser);
-		bool obstacle(TLaserData tLaser);
-		void bug( const TLaserData& ldata, const TBaseState& bState );
-		bool targetAtSight(TLaserData ldata);
-		void buginit( const TLaserData& ldata, const TBaseState& bState );
-		void stopRobot();
-		float obstacleLeft( const TLaserData& tlaser);
-		float distanceToLine(const TBaseState& bState);
+private:
+	struct Tarjet
+	{
+	  bool active = false;
+	  /* mutable */ QMutex m;
+	  QVec pose = QVec::zeros(3);
+	  
+	  void setActive(bool v)
+	  {
+	    QMutexLocker ml (&m);
+	    active = v;
+	  }
+	  
+	  void copy (float x, float z)
+	  {
+	    QMutexLocker ml (&m);
+	    pose[0]=x;
+	    pose[1]=0;
+	    pose[2]=z;
+	  }
+	  
+	  QVec getPose()
+	  {
+	    QMutexLocker ml (&m);
+	    return pose;
+	  }
+	};
+	
+	Tarjet tarjet;
+	InnerModel *inermodel;
+
+
+	enum class State  { INIT, GOTO, INIT_BUG, BUG} ; 
+	State state = State::INIT;
+	
 		/*
 		virtual void go(const string &nodo, const float x, const float y, const float alpha) = 0;
 		virtual void turn(const float speed) = 0;
