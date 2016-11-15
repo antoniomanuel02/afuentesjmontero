@@ -431,3 +431,26 @@ float SpecificWorker::obstacleLeft(const TLaserData& tlaser)
 	}
 	return min;
 }
+
+void SpecificWorker::go(const string &nodo, const float x, const float y, const float alpha) {
+
+  qDebug() <<x << y; 
+  tarjet.copy(x,y);
+  tarjet.setActive(true);
+  state = State::INIT;
+  
+  
+}
+bool SpecificWorker::atTarget()
+{
+  return false; //hay que hacerlo ############
+}
+
+void SpecificWorker::turn(const float speed)
+{
+    differentialrobot_proxy->setSpeedBase(0, speed);
+}
+void SpecificWorker::stop() {
+  
+  differentialrobot_proxy->stopBase();
+}

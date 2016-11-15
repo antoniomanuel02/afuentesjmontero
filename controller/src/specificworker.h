@@ -88,12 +88,12 @@ private:
 	enum class State  { INIT, GOTO, INIT_BUG, BUG} ; 
 	State state = State::INIT;
 	
-		/*
-		virtual void go(const string &nodo, const float x, const float y, const float alpha) = 0;
-		virtual void turn(const float speed) = 0;
-		virtual bool atTarget() = 0;
-		virtual void stop() = 0;
-		*/
+		
+		 void go(const string &nodo, const float x, const float y, const float alpha);
+		 void turn(const float speed);
+		 bool atTarget();
+		 void stop();
+		
 	};
 	
 #endif
