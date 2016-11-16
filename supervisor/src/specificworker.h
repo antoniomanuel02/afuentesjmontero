@@ -33,6 +33,7 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
+#include <math.h>
 
 class SpecificWorker : public GenericWorker
 {
@@ -45,8 +46,55 @@ public:
 
 public slots:
 	void compute(); 	
-
+	void newAprilTag(const tagsList &tags);
 private:
+  
+  struct Tag
+  {
+    
+    bool active = false;
+    /* mutable */ QMutex m;
+    QVec pose = QVec::zeros(3);
+    InnerModel *inner;
+    int id = 0;
+    
+    
+    void init(InnerModel *innermodel)
+    { 
+      inner= innermodel;
+    }
+    
+    void setActive(bool v)
+    {
+	QMutexLocker ml (&m);
+	active = v;
+    }
+	  
+   void copy (float x,float z, int id_)
+    {
+      QMutexLocker ml (&m);
+      id = id_;
+      pose = inner->transform("void",QVec::vec3(x,0,z),"base");
+    }
+    
+    int getId()
+    {
+      return id;
+    }
+	    
+   QVec getPose()
+   {
+    QMutexLocker ml (&m);
+    return pose;
+   }
+   
+ };
+ 
+  Tag tag;
+  InnerModel *inermodel;
+  int current = 0;
+  enum class State  {SEARCH, WAIT} ; 
+	State state = State::SEARCH;
 	
 };
 

@@ -83,7 +83,7 @@ private:
 	
 	Tarjet tarjet;
 	InnerModel *inermodel;
-
+	
 
 	enum class State  { INIT, GOTO, INIT_BUG, BUG} ; 
 	State state = State::INIT;
