@@ -28,7 +28,8 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include <math.h>
+#include <simplifypath/simplifypath.h>
+
 
 class SpecificWorker : public GenericWorker
 {
@@ -64,6 +65,10 @@ private:
 	  {
 	    QMutexLocker ml (&m);
 	    active = v;
+	  }
+	  bool isActive()
+	  {
+	    return active;
 	  }
 	  
 	  void copy (float x, float z)

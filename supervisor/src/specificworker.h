@@ -22,18 +22,12 @@
        @author authorname
 */
 
-
-
-
-
-
-
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include <math.h>
+
 
 class SpecificWorker : public GenericWorker
 {
@@ -49,12 +43,14 @@ public slots:
 	void newAprilTag(const tagsList &tags);
 private:
   
+   InnerModel *innermodel;
   struct Tag
   {
     
-    bool active = false;
-    /* mutable */ QMutex m;
+   // bool active = false;
+    mutable  QMutex m;
     QVec pose = QVec::zeros(3);
+    QVec poseAnter;
     InnerModel *inner;
     int id = 0;
     
@@ -64,21 +60,23 @@ private:
       inner= innermodel;
     }
     
-    void setActive(bool v)
-    {
-	QMutexLocker ml (&m);
-	active = v;
-    }
+//     void setActive(bool v)
+//     {
+// 	QMutexLocker ml (&m);
+// 	active = v;
+//     }
 	  
    void copy (float x,float z, int id_)
     {
       QMutexLocker ml (&m);
+      pose = inner->transform("world",QVec::vec3(x,0,z),"rgbd");
       id = id_;
-      pose = inner->transform("void",QVec::vec3(x,0,z),"base");
+      
     }
     
     int getId()
     {
+      QMutexLocker ml (&m);
       return id;
     }
 	    
@@ -87,14 +85,22 @@ private:
     QMutexLocker ml (&m);
     return pose;
    }
+   bool changed()
+   {
+     QMutexLocker ml (&m);
+     float d = (pose - poseAnter).norm2();
+     poseAnter = pose;
+     return d > 100;
+     
+   }
    
  };
  
   Tag tag;
-  InnerModel *inermodel;
+ 
   int current = 0;
   enum class State  {SEARCH, WAIT} ; 
-	State state = State::SEARCH;
+  State state = State::SEARCH;
 	
 };
 

@@ -24,6 +24,7 @@
 SpecificWorker::SpecificWorker(MapPrx& mprx) : GenericWorker(mprx)
 {
 
+  state = State::INIT;
 }
 
 /**
@@ -60,6 +61,7 @@ void SpecificWorker::compute()
 
     try
     {
+	//RoboCompDifferentialRobot::TBaseState TBstate;
 	TBaseState TBstate;
 	differentialrobot_proxy->getBaseState(TBstate);
 	QVec vector3 = QVec::zeros(3);
@@ -254,7 +256,7 @@ void SpecificWorker::gotoTarjet(RoboCompLaser::TLaserData &laser)
   float ang = atan2(rt.x(),rt.z());
   float dist = rt.norm2();
   
-  if( dist <= 100)
+  if( dist <= 700)//he cambiado la distancia de 100 a 700 para que no detectase obstaculos antes de la marca
   {
     tarjet.setActive(false);
     qDebug()<< "Cambia a INIT";
@@ -443,7 +445,9 @@ void SpecificWorker::go(const string &nodo, const float x, const float y, const 
 }
 bool SpecificWorker::atTarget()
 {
-  return false; //hay que hacerlo ############
+  
+  return !tarjet.isActive();
+   
 }
 
 void SpecificWorker::turn(const float speed)

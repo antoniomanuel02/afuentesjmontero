@@ -40,8 +40,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 
 
-	inermodel = new InnerModel("/home/salabeta/robocomp/files/innermodel/simpleworld.xml");
-	
+	innermodel = new InnerModel("/home/salabeta/robocomp/files/innermodel/simpleworld.xml");
+	tag.init(innermodel);
 	timer.start(Period);
 	
 
@@ -53,9 +53,14 @@ void SpecificWorker::compute()
   
    try
    {
-    TBaseState TBstate;
+    RoboCompDifferentialRobot::TBaseState TBstate;
     differentialrobot_proxy->getBaseState(TBstate);
-    QVec vector3 = QVec::zeros(3);
+    innermodel->updateTransformValues("base", TBstate.x,0,TBstate.z,0,TBstate.alpha,0);
+   }
+   catch(const Ice::Exception &ex)
+   {
+        std::cout << ex << std::endl;
+   }
  
   
     switch(state) {
@@ -67,7 +72,7 @@ void SpecificWorker::compute()
 	 
 	    
 	  differentialrobot_proxy->stopBase();
-	 // gotopoint_proxy->go();
+	  gotopoint_proxy->go("",tag.getPose().x(),tag.getPose().z(),0);
 	  state = State::WAIT;
 	}
 	differentialrobot_proxy->setSpeedBase(0, 0.3);
@@ -80,14 +85,22 @@ void SpecificWorker::compute()
 	  differentialrobot_proxy->stopBase();
 	  state = State::SEARCH;
 	  current = current ++ % 4;
-	}      
+	}  
+	if(tag.changed()) 
+	{
+	  gotopoint_proxy->go("",tag.getPose().x(),tag.getPose().z(),0);
+	}
 	break;
     }
-    }
-    catch(const Ice::Exception &ex)
-    {
-        std::cout << ex << std::endl;
-    }
+}
+
+void SpecificWorker::newAprilTag(const tagsList &tags) {
+  
+  tag.copy(tags.front().tx, tags.front().tz, tags.front().id);
+  
+}
+
+  
 
   
 // 	try
@@ -100,14 +113,6 @@ void SpecificWorker::compute()
 // 	{
 // 		std::cout << "Error reading from Camera" << e << std::endl;
 // 	}
-}
-void SpecificWorker::newAprilTag(const tagsList &tags) {
-  
-  
-  
-}
-
-
 
 
 
