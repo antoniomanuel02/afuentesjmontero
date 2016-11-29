@@ -18,9 +18,13 @@
 #
 
 import sys, os, Ice, traceback, time
+import networkx as nx
+##import matplotlib.pyplot as plt
 
 from PySide import *
 from genericworker import *
+
+
 
 ROBOCOMP = ''
 try:
@@ -44,12 +48,13 @@ from RoboCompDifferentialRobot import *
 
 
 class SpecificWorker(GenericWorker):
+	g = nx.Graph()
 	def __init__(self, proxy_map):
 		super(SpecificWorker, self).__init__(proxy_map)
 		self.timer.timeout.connect(self.compute)
 		self.Period = 2000
 		self.timer.start(self.Period)
-
+		self.rellenarGrafo()
 	def setParams(self, params):
 		#try:
 		#	par = params["InnerModelPath"]
@@ -57,7 +62,7 @@ class SpecificWorker(GenericWorker):
 		#	innermodel = InnerModel(innermodel_path)
 		#except:
 		#	traceback.print_exc()
-		#	print "Error reading config params"
+		#	print "Error reading config params"		
 		return True
 
 	@QtCore.Slot()
@@ -69,6 +74,17 @@ class SpecificWorker(GenericWorker):
 		#	traceback.print_exc()
 		#	print e
 		return True
+	      
+	def rellenarGrafo(self):	  
+	  with open("puntos.txt", "r") as f:	    
+	    for line in f:
+	      print line
+	      #l=line.split() || if(l[0] == "N":
+	      #if line[0] == "N" line[1] :
+		#g.add_node(line[1], x= line[2], y = line[3], name = "robolab")
+		
+	      #else:
+		#G.add_edge()
 
 
 

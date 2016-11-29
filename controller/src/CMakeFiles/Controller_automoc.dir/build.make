@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jorge/robocomp/components/afuentesjmontero/controller
+CMAKE_SOURCE_DIR = /home/salabeta/robocomp/components/afuentesjmontero/controller
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jorge/robocomp/components/afuentesjmontero/controller
+CMAKE_BINARY_DIR = /home/salabeta/robocomp/components/afuentesjmontero/controller
 
 # Utility rule file for Controller_automoc.
 
@@ -54,8 +54,8 @@ CMAKE_BINARY_DIR = /home/jorge/robocomp/components/afuentesjmontero/controller
 include src/CMakeFiles/Controller_automoc.dir/progress.make
 
 src/CMakeFiles/Controller_automoc:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jorge/robocomp/components/afuentesjmontero/controller/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic moc for target Controller"
-	cd /home/jorge/robocomp/components/afuentesjmontero/controller/src && /usr/bin/cmake -E cmake_autogen /home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/Controller_automoc.dir/ ""
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/salabeta/robocomp/components/afuentesjmontero/controller/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic moc for target Controller"
+	cd /home/salabeta/robocomp/components/afuentesjmontero/controller/src && /usr/bin/cmake -E cmake_autogen /home/salabeta/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/Controller_automoc.dir/ ""
 
 Controller_automoc: src/CMakeFiles/Controller_automoc
 Controller_automoc: src/CMakeFiles/Controller_automoc.dir/build.make
@@ -68,10 +68,10 @@ src/CMakeFiles/Controller_automoc.dir/build: Controller_automoc
 .PHONY : src/CMakeFiles/Controller_automoc.dir/build
 
 src/CMakeFiles/Controller_automoc.dir/clean:
-	cd /home/jorge/robocomp/components/afuentesjmontero/controller/src && $(CMAKE_COMMAND) -P CMakeFiles/Controller_automoc.dir/cmake_clean.cmake
+	cd /home/salabeta/robocomp/components/afuentesjmontero/controller/src && $(CMAKE_COMMAND) -P CMakeFiles/Controller_automoc.dir/cmake_clean.cmake
 .PHONY : src/CMakeFiles/Controller_automoc.dir/clean
 
 src/CMakeFiles/Controller_automoc.dir/depend:
-	cd /home/jorge/robocomp/components/afuentesjmontero/controller && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jorge/robocomp/components/afuentesjmontero/controller /home/jorge/robocomp/components/afuentesjmontero/controller/src /home/jorge/robocomp/components/afuentesjmontero/controller /home/jorge/robocomp/components/afuentesjmontero/controller/src /home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/Controller_automoc.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/salabeta/robocomp/components/afuentesjmontero/controller && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/salabeta/robocomp/components/afuentesjmontero/controller /home/salabeta/robocomp/components/afuentesjmontero/controller/src /home/salabeta/robocomp/components/afuentesjmontero/controller /home/salabeta/robocomp/components/afuentesjmontero/controller/src /home/salabeta/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/Controller_automoc.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : src/CMakeFiles/Controller_automoc.dir/depend
 
