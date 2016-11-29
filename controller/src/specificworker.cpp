@@ -48,8 +48,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 	
 
+	inermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
 	//inermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
-	inermodel = new InnerModel("/home/salabeta/robocomp/files/innermodel/simpleworld.xml");
 	timer.start(Period);
 	
 
@@ -64,16 +64,19 @@ void SpecificWorker::compute()
 	//RoboCompDifferentialRobot::TBaseState TBstate;
 	TBaseState TBstate;
 	differentialrobot_proxy->getBaseState(TBstate);
-	QVec vector3 = QVec::zeros(3);
+	//QVec vector3 = QVec::zeros(3);
 	RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
 	inermodel->updateTransformValues("base", TBstate.x,0,TBstate.z,0,TBstate.alpha,0);
+	QVec ini;
 		
 	switch(state) {
 	  
 	  case State::INIT:
 	      qDebug()<< "Case init";
-	      if(tarjet.active == true){
+	      if(tarjet.isActive()){
 		  qDebug()<< "Estado inicializado, cambia a GOTO";
+		  ini = QVec::vec3(TBstate.x, 0, TBstate.z);
+		  linea = QLine2D( ini, tarjet.getPose() );
 		  state = State::GOTO;
 	      }
 	    break;
@@ -103,11 +106,9 @@ void SpecificWorker::compute()
 
 void SpecificWorker::init_bug(RoboCompLaser::TLaserData &laser, TBaseState &bState)//solo gira para un lado,dar algo de avance en el giro 
 {  
-  
   float rot = 0.5;
-  //RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
-  //std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
-  //if(targetAtSight(laser))
+  QVec posi = QVec::vec3(bState.x, 0., bState.z);
+  distanciaAnterior = fabs(linea.perpendicularDistanceToPoint(posi));
   
   if(!obstacle(laser))
   {
@@ -126,66 +127,37 @@ void SpecificWorker::init_bug(RoboCompLaser::TLaserData &laser, TBaseState &bSta
 void SpecificWorker::bug(RoboCompLaser::TLaserData &laser, TBaseState &bState) //no dar avance en el giro dar en el else,volver al bug init comprobando con el obstacle
 {
   
+  const float alpha = log ( 0.1 ) /log ( 0.3 ); //amortigua /corte//////////////
+  float dist = obstacleLeft(laser);////////////////////
+  float diffToline = distanceToLine(bState);////////////////
   
-  RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
-  std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
-  float d = ldata[10].dist;
-  const float m = 1.f/ 1000.f;
-  const float n = -0.5;
-  float vrot = 0;
-  float vadv;
-  float vr = 0;
-  TBaseState TBstate;
-  const float alpha = log ( 0.1 ) /log ( 0.3 ); //amortigua /corte
-  float dist = obstacleLeft(ldata);
-  qDebug()<< "d: " << d;
-  qDebug()<< "m: " << m;
-  qDebug()<< "n" << n;
-  
-  /*
-  if(cruzarLinea()) {
-    qDebug()<< "Cambia a GOTO";
-    state = State::GOTO;
-    return;
-  }
-  
-   
-  // qDebug()<< "K: " << k;
-  if(d > 160)
-  {
-    vr = rot;//k;//d*k
-    //vr = (m * d) + n;
-  }
-  
-  if(d < 130)
-  {
-    vr = -rot;//k;//-d*k
-    //vr = (m * d) + n;
-  }
-  float alfa = log(0.1)/log(0.2);
-  vadv = (exp(-fabs(vr)*alfa))*100;
-  qDebug()<< "Velocidad de avance" << vadv;
-  qDebug()<< "Velocidad de rotacion" << vr;
-  qDebug()<< "alfa" << alfa;
 
-  differentialrobot_proxy->setSpeedBase(vadv, vr);
-  */
   if(targetAtSight(laser)) {
     qDebug()<< "Cambia a GOTO";
     state = State::GOTO;
     return;
   }
   
-  if(obstacle(ldata))
+  //Check if close to the line and distance is reducing
+  if (distanciaAnterior < 100 and diffToline < 0)
+  {
+    state = State::GOTO;
+    qDebug() << "Crossing the line: from BUG to GOTO";
+    return;
+  }
+  
+  if(obstacle(laser))
   {
     qDebug()<< "Cambia a INIT_BUG";
     state = State::INIT_BUG; 
     return;
   } 
   
-  float k = 0.1;
-  vrot =  -((1./(1. + exp(-k*(dist - 450.))))-1./2.);		//sigmoide para meter vrot entre -0.5 y 0.5. La k ajusta la pendiente.
-  vadv = 350 * exp ( - ( fabs ( vrot ) * alpha ) ); 		//gaussiana para amortiguar la vel. de avance en funcion de vrot
+  float k=0.1;  // pendiente de la sigmoide
+  float vrot =  -((1./(1. + exp(-k*(dist - 450.))))-1./2.);		//sigmoide para meter vrot entre -0.5 y 0.5. La k ajusta la pendiente.
+  float vadv = 350 * exp ( - ( fabs ( vrot ) * alpha ) ); 		//gaussiana para amortiguar la vel. de avance en funcion de vrot
+  qDebug() << vrot << vadv;
+  //vrot *= 0.3;
   differentialrobot_proxy->setSpeedBase ( vadv ,vrot );
   
 }
@@ -193,7 +165,8 @@ void SpecificWorker::bug(RoboCompLaser::TLaserData &laser, TBaseState &bState) /
 
 bool SpecificWorker::obstacle(RoboCompLaser::TLaserData laser) {
   float threshold = 350;
-  RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
+  qDebug()<< "----------------------------------------";
+  RoboCompLaser::TLaserData ldata = laser;  //read laser data 
   std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
   if( ldata[5].dist  < threshold)//ldata.front().dist < threshold)
     {
@@ -249,14 +222,14 @@ bool SpecificWorker::targetAtSight(RoboCompLaser::TLaserData laser)
 void SpecificWorker::gotoTarjet(RoboCompLaser::TLaserData &laser)
 {
 
-  //qDebug() << "Entra en gotoTarjet";
+  qDebug() << "Entra en gotoTarjet";
   
   QVec rt = inermodel->transform("base", tarjet.getPose(), "world");
   
   float ang = atan2(rt.x(),rt.z());
   float dist = rt.norm2();
   
-  if( dist <= 700)//he cambiado la distancia de 100 a 700 para que no detectase obstaculos antes de la marca
+  if( dist <= 100)//ha llegado al destino
   {
     tarjet.setActive(false);
     qDebug()<< "Cambia a INIT";
@@ -272,153 +245,17 @@ void SpecificWorker::gotoTarjet(RoboCompLaser::TLaserData &laser)
     return;
   }
   
-    float adv = dist;
-    float rot = ang;
+    
     if( fabs(ang) > 0.05 )
-      adv = 0;
-    if(adv > 300) 
-      adv = 300;
+      dist = 0;
+    if(dist > 300) 
+      dist = 300;
     
   try
   {
-      differentialrobot_proxy->setSpeedBase(adv, rot);  
+      differentialrobot_proxy->setSpeedBase(dist, ang);  
   }
   catch (const Ice::Exception &ex) {std::cout << ex << std::endl;}
-  
-  
-  /*
-   RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
-	std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;  //sort laser data from small to large distances using a lambda function.
-        //RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
-       // std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;  //sort laser data from small to large distances using a lambda function.
-	TBaseState TBstate;
-	QVec diferencia = QVec::zeros(2);
-	float modulo_diferencia;
-	
-        
-    /* Para que no se coma las cajas   
-    if( ldata[5].dist  < threshold)//ldata.front().dist < threshold)
-    {
-      if(ldata[5].angle > 0) 
-      {
-	//if(ldata[6].angle < 45){
-	  std::cout << ldata.front().dist << std::endl;
-	  differentialrobot_proxy->setSpeedBase(5, -rot);
-	 // usleep(rand()%(1500000-100000 + 1) + 100000);  //random wait between 1.5s and 0.1sec
-	  usleep(30000); 
-	//}
-	
-      }else {
-	//if(ldata[6].angle > -46){
-	  std::cout << ldata.front().dist << std::endl;
-	  differentialrobot_proxy->setSpeedBase(5, rot);
-	 // usleep(rand()%(1500000-100000 + 1) + 100000);  //random wait between 1.5s and 0.1se
-	  usleep(30000); 
-	//}
-	  
-      }
-      
-    }
-    else
-    {
-        differentialrobot_proxy->setSpeedBase(600, 0); 
-    }
-    /////////////////////////////////////////////////////
-    
-    if (tarjet.active == true)
-    {
-     
-      //En tarjet.QVec tenemos las coordenadas del punto a donde tiene que ir el robot
-      //En TBstate tenemos la posici´on del robot
-      // im -> trans("base",qvec,"world")
-      
-      differentialrobot_proxy->getBaseState(TBstate);
-      
-      QVec target = tarjet.getPose();
-  
-      diferencia[0] = target[0] - TBstate.x; 
-      diferencia[1] = target[1] - TBstate.z;
-      
-      target.print("target");
-      qDebug() << TBstate.x << TBstate.z;
-      diferencia.print("dif");
-      
-      
-      
-      
-      std::cout << "diferencia x: " << diferencia[0] << std::endl;
-      std::cout << "diferencia z: " << diferencia[1] << std::endl;
-      
-      //sacamos el modulo del vector
-      modulo_diferencia = (diferencia.x() * diferencia.x()) + (diferencia.z() * diferencia.z());
-      modulo_diferencia = sqrt(modulo_diferencia);
-      
-      float matrizSenoidal[2][2];
-      float matrizWorld[2][1];
-      float matrizTrans[2][1];
-      float matrizResult[2][1];
-      
-      matrizSenoidal[0][0] = cos (TBstate.alpha);
-      matrizSenoidal[0][1] = -sin (TBstate.alpha);
-      matrizSenoidal[1][0] = sin (TBstate.alpha);
-      matrizSenoidal[1][1] = cos (TBstate.alpha);
-      
-      matrizWorld[0][0] = target[0];
-      matrizWorld[1][0] = target[1];
-      
-      matrizTrans[0][0] = diferencia[0];
-      matrizTrans[1][0] = diferencia[1];
-      
-      
-      matrizResult[0][0] = ((matrizSenoidal[0][0]*matrizWorld[0][0]) + (matrizSenoidal[0][1]*matrizWorld[1][0])) + (matrizTrans[0][0]);
-      matrizResult[1][0] = ((matrizSenoidal[1][0]*matrizWorld[0][0]) + (matrizSenoidal[1][1]*matrizWorld[1][0])) + (matrizTrans[1][0]);
-      
-    
-      float angulo = atan2(matrizResult[0][0],matrizResult[1][0]);
-      std::cout << "angulo: " << angulo << std::endl;
-     
-     // differentialrobot_proxy->setSpeedBase(0, 0.5);
-      
-      
-      
-      if (fabs(angulo) >= 0.05) //valor absuluto de angulo;
-      {	
-	  if(angulo>0)
-	  {
-	    differentialrobot_proxy->setSpeedBase(0, 0.5);
-	  }
-	  
-	  if(angulo<0)
-	  {
-	    differentialrobot_proxy->setSpeedBase(0, -0.5);
-	  }
-      }
-      
-      else if (fabs(angulo) < 0.05) //valor absuluto de angulo;
-      {
-	//std::cout << "Tira para alante con modulo: " << modulo_diferencia << std::endl;
-	if (fabs(modulo_diferencia) > 100)
-	{
-	  differentialrobot_proxy->setSpeedBase(300, 0);
-	}
-	else
-	  differentialrobot_proxy->setSpeedBase(0, 0);
-      }
-      
-      
-      
-      
-      
-      //ahora necesitamos el angulo del vector diferencia para que el robot apunte 
-      //a la zona donde debe ir
-      
-      
-      //necesito ang y mod
-      
-    }
-    Tareas, robocomp/comonents/roboc-robolab/apriltagsMaster cmake . y luego make, pude no funcionar porque falta lib.
-    hacer los virtuales, el go es 0 que el setpick pero con x y en vez de mypick.x ...
-    */
 
 }
 
@@ -433,6 +270,15 @@ float SpecificWorker::obstacleLeft(const TLaserData& tlaser)
 	}
 	return min;
 }
+
+float SpecificWorker::distanceToLine(const TBaseState& bState)
+{
+	QVec posi = QVec::vec3(bState.x, 0., bState.z);
+	float distanciaEnPunto = fabs(linea.perpendicularDistanceToPoint(posi));
+	float diff = distanciaEnPunto - distanciaAnterior;
+	distanciaAnterior = distanciaEnPunto;
+	return diff;
+} 
 
 void SpecificWorker::go(const string &nodo, const float x, const float y, const float alpha) {
 

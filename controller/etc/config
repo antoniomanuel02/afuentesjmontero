@@ -1,7 +1,7 @@
 CommonBehavior.Endpoints=tcp -p 11111
 
 # Endpoints for implemented interfaces
-GotoPoint.Endpoints=tcp -p 12433
+GotoPoint.Endpoints=tcp -p 11100
 
 
 # Endpoints for subscriptions

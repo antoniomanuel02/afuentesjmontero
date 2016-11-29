@@ -28,7 +28,7 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
-#include <simplifypath/simplifypath.h>
+//#include <simplifypath/simplifypath.h>
 
 
 class SpecificWorker : public GenericWorker
@@ -45,6 +45,7 @@ public:
 	void init_bug(RoboCompLaser::TLaserData &laser, TBaseState &bState);
 	bool targetAtSight(RoboCompLaser::TLaserData laser);
 	float obstacleLeft(const TLaserData& tlaser);
+	float distanceToLine(const TBaseState& bState);
 	
 
 public slots:
@@ -88,6 +89,8 @@ private:
 	
 	Tarjet tarjet;
 	InnerModel *inermodel;
+	QLine2D linea;
+	float distanciaAnterior;
 	
 
 	enum class State  { INIT, GOTO, INIT_BUG, BUG} ; 

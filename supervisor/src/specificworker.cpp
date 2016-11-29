@@ -40,7 +40,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 
 
-	innermodel = new InnerModel("/home/salabeta/robocomp/files/innermodel/simpleworld.xml");
+	innermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
 	tag.init(innermodel);
 	timer.start(Period);
 	
@@ -69,12 +69,14 @@ void SpecificWorker::compute()
 	qDebug()<< "Case SEARCH";
       
 	if(tag.getId() == current){
-	 
-	    
+	  qDebug()<< "CURRENT" << current;
+	  qDebug()<< "ID" << tag.getId();
 	  differentialrobot_proxy->stopBase();
 	  gotopoint_proxy->go("",tag.getPose().x(),tag.getPose().z(),0);
 	  state = State::WAIT;
+	  return;
 	}
+	//iria el turn
 	differentialrobot_proxy->setSpeedBase(0, 0.3);
 	break;
       
@@ -82,6 +84,7 @@ void SpecificWorker::compute()
 	qDebug()<< "Case WAIT";
       
 	if(gotopoint_proxy->atTarget() == true) {
+	  qDebug()<< "################################################";
 	  differentialrobot_proxy->stopBase();
 	  state = State::SEARCH;
 	  current = current ++ % 4;
@@ -100,7 +103,14 @@ void SpecificWorker::newAprilTag(const tagsList &tags) {
   
 }
 
-  
+  /*
+   una vez que tenemos el grafo hay que ver donde esta el robot y crear una lista con los nodos donde tiene que ir el robot
+   hay que conectar las salas, 
+   necesitamos metodos que: 
+   libreria lemon
+   hay qeu quitar la maquina de estados del supervisor
+   
+   */
 
   
 // 	try
