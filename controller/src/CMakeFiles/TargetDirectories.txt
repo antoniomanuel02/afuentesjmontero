@@ -1,0 +1,8 @@
+/home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/install.dir
+/home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/list_install_components.dir
+/home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/rebuild_cache.dir
+/home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/Controller.dir
+/home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/edit_cache.dir
+/home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/install/strip.dir
+/home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/install/local.dir
+/home/jorge/robocomp/components/afuentesjmontero/controller/src/CMakeFiles/Controller_automoc.dir
