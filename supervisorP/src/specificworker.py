@@ -19,8 +19,7 @@
 
 import sys, os, Ice, traceback, time
 import networkx as nx
-##import matplotlib.pyplot as plt
-
+import matplotlib.pyplot as plt
 from PySide import *
 from genericworker import *
 
@@ -48,7 +47,7 @@ from RoboCompDifferentialRobot import *
 
 
 class SpecificWorker(GenericWorker):
-	g = nx.Graph()
+	
 	def __init__(self, proxy_map):
 		super(SpecificWorker, self).__init__(proxy_map)
 		self.timer.timeout.connect(self.compute)
@@ -68,25 +67,51 @@ class SpecificWorker(GenericWorker):
 	@QtCore.Slot()
 	def compute(self):
 		print 'SpecificWorker.compute...'
+		
+		
+		
 		#try:
 		#	self.differentialrobot_proxy.setSpeedBase(100, 0)
 		#except Ice.Exception, e:
 		#	traceback.print_exc()
 		#	print e
-		return True
+		return True     
+	def rellenarGrafo(self):
+	  pos={}
+	  file = open('puntos.txt', 'r')
+	  with file as f:
+	     g = nx.Graph()
+	     for line in f:
+	       print line
+	       l=line.split()
+	       if l[0] == "N":
+		 g.add_node(l[1], x=l[2], z=l[3], tipo= l[4])
+		 pos[l[1]]=(float(l[2]), float(l[3]))
+	       elif line[0] == "E":
+		 g.add_edge(l[1],l[2])
+		   
+	  file.close()
+          print pos
+          img = plt.imread("plano.png")
+	  plt.imshow(img,extent=([-12284, 25600, -3840, 9023]))
+	  nx.draw_networkx(g, pos)
+	  
+	  print "Haciendo camino minimo"
+	  print nx.shortest_path(g,source="1", target="6") 
+	  
+	  #nx.draw_networkx(g, posiciones)
+	  plt.show()
+	     
+	def nodoCercano(self):
+	  bState = RoboCompDifferentialRobot.Bstate()
+	  differentialrobot_proxy.getBaseState(bState)
+	  r = (bState.x , bState.z)
+	  dist = lambda r,n: (r[0]-n[0])**2+(r[1]-n[1])**2
+	  #funcion que devuele el nodo mas cercano al robot
+	  return  sorted(list (( n[0] ,dist(n[1],r)) for n in posiciones.items() ), key=lambda s: s[1])[0][0]
+	
+	
+	     #nx.shortestpath(g,source="3", target = "5")
+	      #source es el punto del grafo mas cercano al robot
+	      #nx.draw_circular(g,node_size=3000,node_color='b')
 	      
-	def rellenarGrafo(self):	  
-	  with open("puntos.txt", "r") as f:	    
-	    for line in f:
-	      print line
-	      #l=line.split() || if(l[0] == "N":
-	      #if line[0] == "N" line[1] :
-		#g.add_node(line[1], x= line[2], y = line[3], name = "robolab")
-		
-	      #else:
-		#G.add_edge()
-
-
-
-
-
