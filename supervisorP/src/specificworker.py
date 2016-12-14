@@ -54,6 +54,7 @@ class SpecificWorker(GenericWorker):
 		self.Period = 2000
 		self.timer.start(self.Period)
 		self.rellenarGrafo()
+		self.nodoCercano()
 	def setParams(self, params):
 		#try:
 		#	par = params["InnerModelPath"]
@@ -68,7 +69,7 @@ class SpecificWorker(GenericWorker):
 	def compute(self):
 		print 'SpecificWorker.compute...'
 		
-		
+
 		
 		#try:
 		#	self.differentialrobot_proxy.setSpeedBase(100, 0)
@@ -99,7 +100,7 @@ class SpecificWorker(GenericWorker):
 	  print "Haciendo camino minimo"
 	  print nx.shortest_path(g,source="1", target="6") 
 	  
-	  #nx.draw_networkx(g, posiciones)
+	 # nx.draw_networkx(g, posiciones)
 	  plt.show()
 	     
 	def nodoCercano(self):
