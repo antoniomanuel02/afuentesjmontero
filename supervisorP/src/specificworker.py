@@ -47,7 +47,8 @@ from RoboCompDifferentialRobot import *
 
 
 class SpecificWorker(GenericWorker):
-	
+	posiciones = ()
+	global estado
 	def __init__(self, proxy_map):
 		super(SpecificWorker, self).__init__(proxy_map)
 		self.timer.timeout.connect(self.compute)
@@ -55,6 +56,10 @@ class SpecificWorker(GenericWorker):
 		self.timer.start(self.Period)
 		self.rellenarGrafo()
 		self.nodoCercano()
+		grafo
+		rutas=(71)
+		self.switch={"init":self.init(),"TI":self.ti(),"PI":self.pi(),"GoI":self.goi()}
+		
 	def setParams(self, params):
 		#try:
 		#	par = params["InnerModelPath"]
@@ -68,15 +73,34 @@ class SpecificWorker(GenericWorker):
 	@QtCore.Slot()
 	def compute(self):
 		print 'SpecificWorker.compute...'
-		
-
-		
+		switch[estado]()
 		#try:
 		#	self.differentialrobot_proxy.setSpeedBase(100, 0)
 		#except Ice.Exception, e:
 		#	traceback.print_exc()
 		#	print e
 		return True     
+	      
+	def init(self)
+	  self.estado="TI"
+	 
+	def ti(self)
+	  if len(rutas)==0:
+	     estado="Init"
+	  else
+	    xxxget=rutas.pop()
+	    self.nodo=nodoCercano()
+	    self.lista=nx.
+	    s.estado="PI"
+	
+	def pi(self)
+	  if lista
+	    estado="TI"
+	  else
+	    controller(lista.pop)
+	    estado="GoI"
+	def goi(self)
+	     
 	def rellenarGrafo(self):
 	  pos={}
 	  file = open('puntos.txt', 'r')
@@ -104,12 +128,12 @@ class SpecificWorker(GenericWorker):
 	  plt.show()
 	     
 	def nodoCercano(self):
-	  bState = RoboCompDifferentialRobot.Bstate()
-	  differentialrobot_proxy.getBaseState(bState)
+	  bState = TBaseState()
+	  bstate = self.differentialrobot_proxy.getBaseState()
 	  r = (bState.x , bState.z)
 	  dist = lambda r,n: (r[0]-n[0])**2+(r[1]-n[1])**2
 	  #funcion que devuele el nodo mas cercano al robot
-	  return  sorted(list (( n[0] ,dist(n[1],r)) for n in posiciones.items() ), key=lambda s: s[1])[0][0]
+	  return  sorted(list (( n[0] ,dist(n[1],r)) for n in self.posiciones.items() ), key=lambda s: s[1])[0][0]
 	
 	
 	     #nx.shortestpath(g,source="3", target = "5")
