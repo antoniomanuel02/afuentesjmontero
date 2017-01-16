@@ -47,18 +47,22 @@ from RoboCompDifferentialRobot import *
 
 
 class SpecificWorker(GenericWorker):
-	posiciones = ()
-	global estado
+	posiciones = {}
+	estado = 'init'
+	ruta = [10, 61]
 	def __init__(self, proxy_map):
 		super(SpecificWorker, self).__init__(proxy_map)
 		self.timer.timeout.connect(self.compute)
 		self.Period = 2000
 		self.timer.start(self.Period)
 		self.rellenarGrafo()
-		self.nodoCercano()
-		grafo
-		rutas=(71)
-		self.switch={"init":self.init(),"TI":self.ti(),"PI":self.pi(),"GoI":self.goi()}
+		self.nodoCercano()		
+		self.switch={
+		  'init':self.init(),
+		  'TI':self.ti(),
+		  'PI':self.pi(),
+		  'GoI':self.goi(),
+		}
 		
 	def setParams(self, params):
 		#try:
@@ -73,7 +77,7 @@ class SpecificWorker(GenericWorker):
 	@QtCore.Slot()
 	def compute(self):
 		print 'SpecificWorker.compute...'
-		switch[estado]()
+		self.switch[self.estado]()
 		#try:
 		#	self.differentialrobot_proxy.setSpeedBase(100, 0)
 		#except Ice.Exception, e:
@@ -81,53 +85,75 @@ class SpecificWorker(GenericWorker):
 		#	print e
 		return True     
 	      
-	def init(self)
-	  self.estado="TI"
+	def init(self):
+	  self.estado='TI'
 	 
-	def ti(self)
-	  if len(rutas)==0:
-	     estado="Init"
-	  else
-	    xxxget=rutas.pop()
-	    self.nodo=nodoCercano()
-	    self.lista=nx.
-	    s.estado="PI"
+	def ti(self):
+	  
+	  if len(self.ruta)==0:
+	     self.estado='init'
+	     return
+	   
+	 self.listan = nx.shortest_path(self.g, source = str(self.nodoCercano()), target=str(self.ruta[0]))
+	 self.ruta.pop()
+	 print self.listan
+	 self.estado='PI'
 	
-	def pi(self)
-	  if lista
-	    estado="TI"
-	  else
-	    controller(lista.pop)
-	    estado="GoI"
-	def goi(self)
+	def pi(self):
+	  
+	  if len(self.listan) == 0
+	    self.estado='TI'
+	    return
+	  
+	  self.nodoA = self.listan[0]
+	  print "nodo actual" + str(self.nodoA)
+	  self.listan.pop(0)
+	  try:
+	    print "posicion target: ", self.posiciones[self.nodoA[0], self.posiciones[self.nodoA][1]
+	    self.gotopoint_proxy.go("", self.posiciones[self.nodoA][0], self.posiciones[self.nodoA[1], 0.3)
+	  except Ice.Exception as e:
+	    print e
+	    
+	  self.estado = 'GoI'
+	  
+	def goi(self):
+	  
+	  try: 
+	    if self.gotopoint_proxy.atTarget():
+	      self.estado = 'PI'
+	      print "nodo alcanzado", self.nodoA
+	      return
+	    
+	  except Ice.Exception as e:
+	    print e
+	    
 	     
 	def rellenarGrafo(self):
-	  pos={}
+	  
 	  file = open('puntos.txt', 'r')
 	  with file as f:
-	     g = nx.Graph()
+	     self.g = nx.Graph()
 	     for line in f:
 	       print line
 	       l=line.split()
 	       if l[0] == "N":
-		 g.add_node(l[1], x=l[2], z=l[3], tipo= l[4])
-		 pos[l[1]]=(float(l[2]), float(l[3]))
+		 self.g.add_node(l[1], x=float(l[2]), z=float(l[3]), tipo= l[4])
+		 self.posiciones[l[1]]=(float(l[2]), float(l[3]))
 	       elif line[0] == "E":
-		 g.add_edge(l[1],l[2])
+		 self.g.add_edge(l[1],l[2])
 		   
 	  file.close()
-          print pos
-          img = plt.imread("plano.png")
-	  plt.imshow(img,extent=([-12284, 25600, -3840, 9023]))
-	  nx.draw_networkx(g, pos)
+          print self.posiciones
+          #img = plt.imread("plano.png")
+	  #plt.imshow(img,extent=([-12284, 25600, -3840, 9023]))
+	  #nx.draw_networkx(g, pos)
 	  
-	  print "Haciendo camino minimo"
-	  print nx.shortest_path(g,source="1", target="6") 
-	  
-	 # nx.draw_networkx(g, posiciones)
-	  plt.show()
+	 
+	  #nx.draw_networkx(g, posiciones)
+	  #plt.show()
 	     
 	def nodoCercano(self):
+	  
 	  bState = TBaseState()
 	  bstate = self.differentialrobot_proxy.getBaseState()
 	  r = (bState.x , bState.z)
