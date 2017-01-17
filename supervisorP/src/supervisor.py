@@ -65,6 +65,7 @@ from PySide import *
 
 from specificworker import *
 
+
 ROBOCOMP = ''
 try:
 	ROBOCOMP = os.environ['ROBOCOMP']

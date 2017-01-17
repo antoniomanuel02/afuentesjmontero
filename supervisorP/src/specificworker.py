@@ -94,14 +94,14 @@ class SpecificWorker(GenericWorker):
 	     self.estado='init'
 	     return
 	   
-	 self.listan = nx.shortest_path(self.g, source = str(self.nodoCercano()), target=str(self.ruta[0]))
-	 self.ruta.pop()
-	 print self.listan
-	 self.estado='PI'
+	  self.listan = nx.shortest_path(self.g, source = str(self.nodoCercano()), target=str(self.ruta[0]))
+	  self.ruta.pop()
+	  print self.listan
+	  self.estado='PI'
 	
 	def pi(self):
 	  
-	  if len(self.listan) == 0
+	  if len(self.listan) == 0:
 	    self.estado='TI'
 	    return
 	  
@@ -110,7 +110,7 @@ class SpecificWorker(GenericWorker):
 	  self.listan.pop(0)
 	  try:
 	    print "posicion target: ", self.posiciones[self.nodoA[0], self.posiciones[self.nodoA][1]
-	    self.gotopoint_proxy.go("", self.posiciones[self.nodoA][0], self.posiciones[self.nodoA[1], 0.3)
+	    self.gotopoint_proxy.go("", self.posiciones[self.nodoA][0], self.posiciones[self.nodoA][1], 0.3)
 	  except Ice.Exception as e:
 	    print e
 	    
