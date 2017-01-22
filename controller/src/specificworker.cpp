@@ -39,6 +39,7 @@ void SpecificWorker::setPick(const Pick &myPick) {//se ejecuta en el hilo de mid
   
   tarjet.copy(myPick.x,myPick.z);
   tarjet.setActive(true);
+  state = State::INIT;
   
   qDebug() << myPick.x << myPick.z; 
   
@@ -48,8 +49,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
 	
 
-	//inermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
-	inermodel = new InnerModel("/home/salabeta/robocomp/files/innermodel/informatica_plantabaja.xml");
+	inermodel = new InnerModel("/home/jorge/robocomp/files/innermodel/simpleworld.xml");
+	//inermodel = new InnerModel("/home/salabeta/robocomp/files/innermodel/informatica_plantabaja.xml");
 	timer.start(Period);
 	
 
@@ -61,8 +62,8 @@ void SpecificWorker::compute()
 
     try
     {
-	//RoboCompDifferentialRobot::TBaseState TBstate;
-	TBaseState TBstate;
+	RoboCompDifferentialRobot::TBaseState TBstate;
+	//TBaseState TBstate;
 	differentialrobot_proxy->getBaseState(TBstate);
 	//QVec vector3 = QVec::zeros(3);
 	RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();  //read laser data 
@@ -104,7 +105,7 @@ void SpecificWorker::compute()
     
 }
 
-void SpecificWorker::init_bug(RoboCompLaser::TLaserData &laser, TBaseState &bState)//solo gira para un lado,dar algo de avance en el giro 
+void SpecificWorker::init_bug(const TLaserData &laser, const TBaseState &bState)//solo gira para un lado,dar algo de avance en el giro 
 {  
   float rot = 0.5;
   QVec posi = QVec::vec3(bState.x, 0., bState.z);
@@ -124,7 +125,7 @@ void SpecificWorker::init_bug(RoboCompLaser::TLaserData &laser, TBaseState &bSta
        
 }
 
-void SpecificWorker::bug(RoboCompLaser::TLaserData &laser, TBaseState &bState) //no dar avance en el giro dar en el else,volver al bug init comprobando con el obstacle
+void SpecificWorker::bug(const TLaserData &laser, const TBaseState &bState) //no dar avance en el giro dar en el else,volver al bug init comprobando con el obstacle
 {
   
   const float alpha = log ( 0.1 ) /log ( 0.3 ); //amortigua /corte//////////////
@@ -163,23 +164,17 @@ void SpecificWorker::bug(RoboCompLaser::TLaserData &laser, TBaseState &bState) /
 }
 
 
-bool SpecificWorker::obstacle(RoboCompLaser::TLaserData laser) {
-  float threshold = 350;
-  qDebug()<< "----------------------------------------";
-  RoboCompLaser::TLaserData ldata = laser;  //read laser data 
-  std::sort( ldata.begin() +5, ldata.end()-5, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
-  if( ldata[5].dist  < threshold)//ldata.front().dist < threshold)
-    {
-      return true;
-    }
-    else 
-    {
-      return false;
-    }
+bool SpecificWorker::obstacle(TLaserData laser) {
+	const int offset = 35;
+	const int minDist = 200;
+	
+	//sort laser data from small to large distances using a lambda function.
+	std::sort ( laser.begin() + offset, laser.end()- offset, [] ( RoboCompLaser::TData a, RoboCompLaser::TData b ){	return a.dist < b.dist;});
+	return ( laser[offset].dist < minDist );
       
   
 }
-bool SpecificWorker::targetAtSight(RoboCompLaser::TLaserData laser)
+bool SpecificWorker::targetAtSight(TLaserData laser)
 {
   QPolygon poly;
 	for ( auto l: laser )
@@ -190,7 +185,7 @@ bool SpecificWorker::targetAtSight(RoboCompLaser::TLaserData laser)
 	}
 	QVec targetInRobot = inermodel->transform("base", tarjet.getPose(), "world");
 	float dist = targetInRobot.norm2();
-	int veces = int(dist / 200);  //number of times the robot semilength fits in the robot-to-target distance
+	int veces = int(dist / 150);  //number of times the robot semilength fits in the robot-to-target distance
 	float landa = 1./veces;
 	
 	QList<QPoint> points;
@@ -219,7 +214,7 @@ bool SpecificWorker::targetAtSight(RoboCompLaser::TLaserData laser)
 
 }
 
-void SpecificWorker::gotoTarjet(RoboCompLaser::TLaserData &laser)
+void SpecificWorker::gotoTarjet(const TLaserData &laser)
 {
 
   qDebug() << "Entra en gotoTarjet";
@@ -279,6 +274,16 @@ float SpecificWorker::distanceToLine(const TBaseState& bState)
 	distanciaAnterior = distanciaEnPunto;
 	return diff;
 } 
+
+void SpecificWorker::stopRobot()
+{
+  try
+  {
+		differentialrobot_proxy->stopBase();
+  }
+  catch ( const Ice::Exception &ex )
+  {	std::cout << ex << std::endl; }
+}
 
 void SpecificWorker::go(const string &nodo, const float x, const float y, const float alpha) {
 

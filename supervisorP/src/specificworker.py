@@ -49,7 +49,7 @@ from RoboCompDifferentialRobot import *
 class SpecificWorker(GenericWorker):
 	posiciones = {}
 	estado = 'init'
-	ruta = [10, 61]
+	ruta = [28, 61]
 	def __init__(self, proxy_map):
 		super(SpecificWorker, self).__init__(proxy_map)
 		self.timer.timeout.connect(self.compute)
@@ -109,8 +109,8 @@ class SpecificWorker(GenericWorker):
 	  print "nodo actual" + str(self.nodoA)
 	  self.listan.pop(0)
 	  try:
-	    print "posicion target: ", self.posiciones[self.nodoA[0], self.posiciones[self.nodoA][1]
-	    self.gotopoint_proxy.go("", self.posiciones[self.nodoA][0], self.posiciones[self.nodoA][1], 0.3)
+	    print "posicion target: ", self.posiciones[self.nodoA[0]], self.posiciones[self.nodoA[1]]
+	    self.gotopoint_proxy.go("", self.posiciones[self.nodoA[0]], self.posiciones[self.nodoA[1]], 0.3)
 	  except Ice.Exception as e:
 	    print e
 	    

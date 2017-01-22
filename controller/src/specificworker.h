@@ -39,13 +39,14 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 	void setPick(const Pick &myPick);
-	void gotoTarjet(RoboCompLaser::TLaserData &laser);
-	bool obstacle(RoboCompLaser::TLaserData laser);
-	void bug(RoboCompLaser::TLaserData &laser, TBaseState &bState);
-	void init_bug(RoboCompLaser::TLaserData &laser, TBaseState &bState);
-	bool targetAtSight(RoboCompLaser::TLaserData laser);
+	void gotoTarjet(const TLaserData &laser);
+	bool obstacle(TLaserData laser);
+	void bug(const TLaserData &laser, const TBaseState &bState);
+	void init_bug(const TLaserData &laser, const TBaseState &bState);
+	bool targetAtSight(TLaserData laser);
 	float obstacleLeft(const TLaserData& tlaser);
 	float distanceToLine(const TBaseState& bState);
+	void stopRobot();
 	
 
 public slots:
