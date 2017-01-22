@@ -223,15 +223,16 @@ void SpecificWorker::gotoTarjet(const TLaserData &laser)
   
   float ang = atan2(rt.x(),rt.z());
   float dist = rt.norm2();
-  
-  if( dist <= 100)//ha llegado al destino
+  qDebug()<< "Comprueba distancia************************";
+  if( dist <= 200)//ha llegado al destino
   {
     tarjet.setActive(false);
+    qDebug()<< "Ha llegado a su destino";
     qDebug()<< "Cambia a INIT";
     state = State::INIT;
     differentialrobot_proxy->stopBase();
     return;
-    //qDebug()<< "Ha llegado a su destino";  
+    qDebug()<< "Ha llegado a su destino";  
   }
   if(obstacle(laser))
   {

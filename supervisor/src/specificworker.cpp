@@ -23,7 +23,7 @@
 */
 SpecificWorker::SpecificWorker(MapPrx& mprx) : GenericWorker(mprx)
 {
-
+  
 }
 
 /**
@@ -69,7 +69,6 @@ void SpecificWorker::compute()
 	qDebug()<< "Case SEARCH";
       
 	if(tag.getId() == current){
-	  qDebug()<< "CURRENT" << current;
 	  qDebug()<< "ID" << tag.getId();
 	  differentialrobot_proxy->stopBase();
 	  gotopoint_proxy->go("",tag.getPose().x(),tag.getPose().z(),0);
@@ -84,10 +83,19 @@ void SpecificWorker::compute()
 	qDebug()<< "Case WAIT";
       
 	if(gotopoint_proxy->atTarget() == true) {
-	  qDebug()<< "################################################";
+	  
 	  differentialrobot_proxy->stopBase();
 	  state = State::SEARCH;
-	  current = current ++ % 4;
+	  if (current == 4)
+	  {
+	    current = 0;
+	    
+	  }
+	  else
+	  {
+	    
+	    current = current ++;
+	  }
 	}  
 	if(tag.changed()) 
 	{

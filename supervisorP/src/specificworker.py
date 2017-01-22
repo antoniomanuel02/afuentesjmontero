@@ -48,21 +48,17 @@ from RoboCompDifferentialRobot import *
 
 class SpecificWorker(GenericWorker):
 	posiciones = {}
+	global estado
 	estado = 'init'
-	ruta = [28, 61]
+	ruta = [61]
 	def __init__(self, proxy_map):
 		super(SpecificWorker, self).__init__(proxy_map)
 		self.timer.timeout.connect(self.compute)
 		self.Period = 2000
 		self.timer.start(self.Period)
 		self.rellenarGrafo()
-		self.nodoCercano()		
-		self.switch={
-		  'init':self.init(),
-		  'TI':self.ti(),
-		  'PI':self.pi(),
-		  'GoI':self.goi(),
-		}
+		self.nodoCercano()
+		
 		
 	def setParams(self, params):
 		#try:
@@ -77,7 +73,15 @@ class SpecificWorker(GenericWorker):
 	@QtCore.Slot()
 	def compute(self):
 		print 'SpecificWorker.compute...'
-		self.switch[self.estado]()
+		if estado == 'init':
+		  self.init()
+		if estado == 'TI':
+		  self.ti()
+		if estado == 'PI':
+		  self.pi()
+		if estado == 'GoI':
+		  self.goi()
+		#self.switch[self.estado]()
 		#try:
 		#	self.differentialrobot_proxy.setSpeedBase(100, 0)
 		#except Ice.Exception, e:
@@ -86,44 +90,60 @@ class SpecificWorker(GenericWorker):
 		return True     
 	      
 	def init(self):
-	  self.estado='TI'
+	  print 'entra en init'
+	  #self.estado='TI'
+	  global estado
+	  estado = 'TI'
 	 
 	def ti(self):
-	  
+	  print 'entra en ti'
 	  if len(self.ruta)==0:
-	     self.estado='init'
+	     #self.estado='init'
+	     global estado
+	     estado = 'init'
 	     return
 	   
 	  self.listan = nx.shortest_path(self.g, source = str(self.nodoCercano()), target=str(self.ruta[0]))
 	  self.ruta.pop()
 	  print self.listan
-	  self.estado='PI'
+	  #self.estado='PI'
+	  global estado
+	  estado = 'PI'
 	
 	def pi(self):
-	  
+	  print 'entra en pi'
 	  if len(self.listan) == 0:
-	    self.estado='TI'
+	    #self.estado='TI'
+	    global estado
+	    estado = 'PI'
 	    return
 	  
 	  self.nodoA = self.listan[0]
 	  print "nodo actual" + str(self.nodoA)
 	  self.listan.pop(0)
 	  try:
-	    print "posicion target: ", self.posiciones[self.nodoA[0]], self.posiciones[self.nodoA[1]]
-	    self.gotopoint_proxy.go("", self.posiciones[self.nodoA[0]], self.posiciones[self.nodoA[1]], 0.3)
+	    print "posicion target: ", self.posiciones[self.nodoA][0], self.posiciones[self.nodoA][1]
+	    self.gotopoint_proxy.go("", self.posiciones[self.nodoA][0], self.posiciones[self.nodoA][1], 0.3)
 	  except Ice.Exception as e:
 	    print e
 	    
-	  self.estado = 'GoI'
+	  #self.estado = 'GoI'
+	  global estado
+	  estado = 'GoI'
 	  
 	def goi(self):
-	  
+	  print 'entra en goi'
 	  try: 
-	    if self.gotopoint_proxy.atTarget():
-	      self.estado = 'PI'
-	      print "nodo alcanzado", self.nodoA
-	      return
 	    
+	    if self.gotopoint_proxy.atTarget():
+	      #self.estado = 'PI'
+	      global estado
+	      estado = 'PI'
+	      print 'cambia a PI'
+	      print 'nodo alcanzado', self.nodoA
+	      return
+	   
+	      
 	  except Ice.Exception as e:
 	    print e
 	    
